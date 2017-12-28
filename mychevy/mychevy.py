@@ -46,17 +46,17 @@ class MyChevy(object):
         self.chromedriver = driver
         self.user = user
         self.passwd = passwd
+        self.headless = headless
 
+
+    def data(self):
+        # Get the main page
         chrome_options = Options()
-        if headless:
+        if self.headless:
             chrome_options.add_argument("--headless")
-        self.driver = webdriver.Chrome(
+        driver = webdriver.Chrome(
             executable_path=os.path.abspath(self.chromedriver),
             chrome_options=chrome_options)
-
-    async def data(self):
-        # Get the main page
-        driver = self.driver
         driver.get(LOGIN_URL)
 
         # Login as user
@@ -91,5 +91,7 @@ class MyChevy(object):
 
         car.mileage = driver.find_element_by_css_selector(
             ".panel-vehicle-info-table tbody tr:nth-child(1) td:nth-child(2)").text
+
+        driver.close()
 
         return car
