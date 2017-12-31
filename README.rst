@@ -65,7 +65,7 @@ Usage is very basic.
    page = MyChevy("<username>", "<password>")
    # This takes up to 2 minutes to return, be patient
    car = page.data()
-   # Percent patter charge
+   # Percent battery charge
    print(car.percent)
 
 
