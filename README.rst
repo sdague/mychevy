@@ -41,19 +41,64 @@ Installation for this library is more than just a pip install, because you must
 1. Install Google Chrome (real Chrome, Chromium doesn't count)
 2. Install Chrome Web driver, put it in /usr/local/bin
 
-   ```
+   .. code-block:: bash
+
    CHROME_DRIVER_VERSION=`curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE`
    wget -N http://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip -P /tmp
    unzip /tmp/chromedriver_linux64.zip -d /tmp
    sudo install -m 0755 -o root /tmp/chromedriver /usr/local/bin/chromedriver
 
-   ```
+
 3. pip install mychevy
 
 The last part will pull in all selenium bindings.
 
+Usage
+=====
+
+Usage is very basic.
+
+.. code-block:: python
+
+   from mychevy.mychevy import MyChevy
+
+   page = MyChevy("<username>", "<password>")
+   # This takes up to 2 minutes to return, be patient
+   car = page.data()
+   # Percent patter charge
+   print(car.percent)
+
+
+Every invocation of ``data()`` creates a whole separate browser to avoid
+credential timeouts.
+
+It is not recommended that you run this very frequently. Something like once an
+hour will give you basic data, and shouldn't overload anyone's systems.
+
 Testing
 =======
+
+Because there are so many ways this can go wrong, a basic cli tool has been
+provided.
+
+.. code-block::
+
+   > mychevy -c config.ini
+   Loading data, this takes up to 2 minutes...
+   <EVCar range=185 miles, bat=100%, plugged_in=True, mileage=903 miles, charging=Your battery is fully charged., charge_mode=Departure Based, eta=None, state=Plugged in(240V)>
+
+config.ini must include your user and password for the mychevy site in the
+following format:
+
+.. code-block::
+
+   [default]
+   user = my@email.address
+   passwd = my@wes0mepa55w0rd
+
+The ``mychevy`` command also takes the ``-S`` flag which makes the selenium
+controlled web browser non headless during it's execution. This can be useful
+for eyeballing why things go wrong (there are so many ways this can go wrong).
 
 Caveats
 =======
@@ -79,6 +124,9 @@ bubble gum and duct tape of which it has heard makes the internet go round.
 * It launches a whole web browser to get a single python object
 
   It's cool that it all works, but it's a lot of moving parts.
+
+* I have no idea what will happen if there is more than one car on the OnStar
+  network for your user.
 
 As such, this software will always be classified Alpha on Pypi. It can and will
 break. For that I'm sorry. But it's the best I've got.
