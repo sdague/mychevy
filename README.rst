@@ -41,7 +41,7 @@ Installation for this library is more than just a pip install, because you must
 1. Install Google Chrome (real Chrome, Chromium doesn't count)
 2. Install Chrome Web driver, put it in /usr/local/bin
 
-   .. code-block:: bash
+.. code-block:: bash
 
    CHROME_DRIVER_VERSION=`curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE`
    wget -N http://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip -P /tmp
