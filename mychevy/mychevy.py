@@ -96,6 +96,7 @@ class MyChevy(object):
     def mileage(self, driver):
         mileage = driver.find_element_by_css_selector(
             ".panel-vehicle-info-table tbody tr:nth-child(1) td:nth-child(2)").text
+        mileage = mileage.replace(',', '')
         return int(mileage)
 
     def _load_page(self, driver):
