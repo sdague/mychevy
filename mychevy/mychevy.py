@@ -18,7 +18,7 @@ USER_FIELD = "Login_Username"
 PASS_FIELD = "Login_Password"
 LOGIN_BUTTON = "Login_Button"
 DEFAULT_DRIVER = "/usr/local/bin/chromedriver"
-TIMEOUT = 120
+TIMEOUT = 240
 
 class EVCar(object):
 
