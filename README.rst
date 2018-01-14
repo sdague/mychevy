@@ -81,7 +81,7 @@ Testing
 Because there are so many ways this can go wrong, a basic cli tool has been
 provided.
 
-.. code-block::
+.. code-block:: bash
 
    > mychevy -c config.ini
    Loading data, this takes up to 2 minutes...
@@ -90,7 +90,7 @@ provided.
 config.ini must include your user and password for the mychevy site in the
 following format:
 
-.. code-block::
+.. code-block:: ini
 
    [default]
    user = my@email.address
