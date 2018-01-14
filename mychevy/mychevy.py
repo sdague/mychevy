@@ -18,8 +18,6 @@ import os
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
@@ -31,6 +29,7 @@ PASS_FIELD = "Login_Password"
 LOGIN_BUTTON = "Login_Button"
 DEFAULT_DRIVER = "/usr/local/bin/chromedriver"
 TIMEOUT = 120
+
 
 class EVCar(object):
 
@@ -52,8 +51,7 @@ class EVCar(object):
                 "mileage=%s miles, charging=%s, charge_mode=%s, eta=%s, "
                 "state=%s>" % (
                     self.range, self.percent, self.plugged_in, self.mileage,
-                    self.charging, self.charge_mode, self.eta, self.state)
-        )
+                    self.charging, self.charge_mode, self.eta, self.state))
 
 
 class MyChevy(object):
@@ -66,8 +64,12 @@ class MyChevy(object):
         self.passwd = passwd
         self.headless = headless
 
+    def _status_bar_right(self, driver):
+        return driver.find_element_by_css_selector(
+            ".status-right").text.split("\n")
+
     def parse_plug(self, driver):
-        status = driver.find_element_by_css_selector(".status-right").text.split("\n")
+        status = self._status_bary_right(driver)
         charging = status[0]
 
         if "Plugged in" in charging:
@@ -80,26 +82,26 @@ class MyChevy(object):
         return (plugged_in, state)
 
     def charging(self, driver):
-        status = driver.find_element_by_css_selector(".status-right").text.split("\n")
+        status = self._status_bary_right(driver)
         mode = status[1]
         return mode
 
     def range(self, driver):
-        status = driver.find_element_by_css_selector(".status-right").text.split("\n")
+        status = self._status_bary_right(driver)
         for i, key in enumerate(status):
             if "Estimated Electric Range" in key:
                 # strip out units
                 return int(status[i + 1].split(' ')[0])
 
     def eta(self, driver):
-        status = driver.find_element_by_css_selector(".status-right").text.split("\n")
+        status = self._status_bary_right(driver)
         for i, key in enumerate(status):
             if "Estimated Full Charge" in key:
                 # strip out units
                 return status[i + 1]
 
     def charge_mode(self, driver):
-        status = driver.find_element_by_css_selector(".status-right").text.split("\n")
+        status = self._status_bary_right(driver)
         for i, key in enumerate(status):
             if "Charge Mode" in key:
                 # strip out units
@@ -107,7 +109,8 @@ class MyChevy(object):
 
     def mileage(self, driver):
         mileage = driver.find_element_by_css_selector(
-            ".panel-vehicle-info-table tbody tr:nth-child(1) td:nth-child(2)").text
+            ".panel-vehicle-info-table tbody "
+            "tr:nth-child(1) td:nth-child(2)").text
         mileage = mileage.replace(',', '')
         return int(mileage)
 
