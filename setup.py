@@ -28,7 +28,7 @@ test_requirements = [
 
 setup(
     name='mychevy',
-    version='0.1.0',
+    version='0.1.1',
     description="Python interface to My Chevy website via Selenium",
     long_description=readme + '\n\n' + history,
     author="Sean Dague",
