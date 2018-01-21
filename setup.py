@@ -12,7 +12,8 @@ with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
 requirements = [
-    'selenium'
+    'selenium>=3.8.0',
+    'click>=6',
     # TODO: put package requirements here
 ]
 
@@ -35,7 +36,11 @@ setup(
     author_email='sean@dague.net',
     url='https://github.com/sdague/mychevy',
     packages=find_packages(include=['mychevy']),
-    scripts=['bin/mychevy'],
+    entry_points={
+        'console_scripts': [
+             'mychevy=mychevy.cli:main'
+         ]
+    },
     include_package_data=True,
     install_requires=requirements,
     license="Apache Software License 2.0",
