@@ -27,6 +27,7 @@ def main(config=None, show_browser=None):
     click.echo("Displaying found cars")
     for c in page.cars:
         click.echo(c)
+    page.car_data()
 
 
 if __name__ == "__main__":
