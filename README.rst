@@ -29,8 +29,8 @@ the data loads off the OnStar network with a 60 - 120 second delay (OnStar is a
 rather slow proprietary cellular network)
 
 This library does the craziest thing possible: uses a headless chrome
-browser to log into the mychevy website, wait until the OnStar data is
-retrieved, returns that information as a Python object.
+browser to log into the mychevy website, captures the session cookies needed to
+interact with backend json services, then calls them.
 
 Installation
 ============
@@ -64,12 +64,22 @@ Usage is very basic.
 
    page = MyChevy("<username>", "<password>")
    # This takes up to 2 minutes to return, be patient
-   car = page.data()
+
+   # build credentials, needs real selenium
+   page.login()
+
+   # gets a list of cars associated with your account
+   page.get_cars()
+
+   # update stats for all cars, and returns the list of cars. This will take
+   # 60+ seconds per car
+   cars = page.update_cars()
+
    # Percent battery charge
-   print(car.percent)
+   print(cars[0].percent)
 
 
-Every invocation of ``data()`` creates a whole separate browser to avoid
+Every invocation of ``login()`` creates a whole separate browser to avoid
 credential timeouts.
 
 It is not recommended that you run this very frequently. Something like once an
@@ -85,7 +95,7 @@ provided.
 
    > mychevy -c config.ini
    Loading data, this takes up to 2 minutes...
-   <EVCar range=185 miles, bat=100%, plugged_in=True, mileage=903 miles, charging=Your battery is fully charged., charge_mode=Departure Based, eta=None, state=Plugged in(240V)>
+   <EVCar vin="...", range=185 miles, bat=100%, plugged_in=True, mileage=903 miles, charging=Your battery is fully charged., charge_mode=Departure Based, eta=None, state="">
 
 config.ini must include your user and password for the mychevy site in the
 following format:
@@ -106,11 +116,12 @@ Caveats
 There are so many caveats.... This software aspires to be the gloriously robust
 bubble gum and duct tape of which it has heard makes the internet go round.
 
-* Screen scraping is inherently a hack
+* JSON formats are guessed at
 
-  This is screen scraping, any roll out of new UI from chevy is going to break
-  this. I'm a user, so I'll try to fix it quickly, but really this could break
-  at any time. Don't rely on the data for anything critical.
+  The use of the sessions capture and transfer, and inspecting json returned
+  still creates slightly different parameters than are used by the website. The
+  set of keys and values are guessed at. It's all kind of fragile and
+  heuristic.
 
 * The MyChevy website OnStar link is not robust
 
@@ -124,9 +135,6 @@ bubble gum and duct tape of which it has heard makes the internet go round.
 * It launches a whole web browser to get a single python object
 
   It's cool that it all works, but it's a lot of moving parts.
-
-* I have no idea what will happen if there is more than one car on the OnStar
-  network for your user.
 
 As such, this software will always be classified Alpha on Pypi. It can and will
 break. For that I'm sorry. But it's the best I've got.

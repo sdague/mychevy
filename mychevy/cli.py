@@ -25,8 +25,11 @@ def main(config=None, show_browser=None):
     page = MyChevy(cfile["default"]["user"], cfile["default"]["passwd"],
                    headless=(not show_browser))
     click.echo("Loading data, this takes up to 2 minutes...")
-    data = page.data()
-    click.echo(data)
+    page.login()
+    page.get_cars()
+    cars = page.update_cars()
+    for c in cars:
+        click.echo(c)
 
 
 if __name__ == "__main__":
