@@ -13,6 +13,7 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [
     'selenium>=3.8.0',
+    'requests',
     'click>=6',
     # TODO: put package requirements here
 ]
@@ -38,8 +39,9 @@ setup(
     packages=find_packages(include=['mychevy']),
     entry_points={
         'console_scripts': [
-             'mychevy=mychevy.cli:main'
-         ]
+            'mychevy=mychevy.cli:main',
+            'mychevy-debug=mychevy.debug:main',
+        ]
     },
     include_package_data=True,
     install_requires=requirements,
