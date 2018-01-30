@@ -27,7 +27,11 @@ def main(config=None, show_browser=None):
     click.echo("Displaying found cars")
     for c in page.cars:
         click.echo(c)
-    page.car_data()
+    click.echo("Updating cars with data")
+    page.update_cars()
+    click.echo("Displaying found cars with data")
+    for c in page.cars:
+        click.echo(c)
 
 
 if __name__ == "__main__":

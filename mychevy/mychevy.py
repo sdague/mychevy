@@ -15,6 +15,7 @@
 """Main module."""
 
 import json
+import logging
 import os
 import time
 
@@ -26,6 +27,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
+
+_LOGGER = logging.getLogger(__name__)
 
 LOGIN_URL = "https://my.chevrolet.com/login"
 USER_FIELD = "Login_Username"
@@ -40,6 +43,9 @@ EVSTATS_URL = "https://my.chevrolet.com/vehicleProfile/{0}/{1}/evstats"
 USER_AGENT = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_4) "
               "AppleWebKit/537.36 (KHTML, like Gecko) "
               "Chrome/42.0.2311.90 Safari/537.36")
+
+# b'{"messages":[],"serverErrorMsgs":[],"data":{"dataAsOfDate":1517317946000,"batteryLevel":82,"chargeState":"not_charging","plugState":"unplugged","rateType":"PEAK","voltage":0,"electricRange":155,"totalRange":182,"chargeMode":"DEPARTURE_BASED","electricMiles":1843,"gasMiles":0,"totalMiles":1843,"percentageOnElectric":1,"fuelEconomy":1000,"electricEconomy":44,"combinedEconomy":9,"fuelUsed":182,"electricityUsed":182,"estimatedGallonsFuelSaved":70.45,"estimatedCO2Avoided":1366.73,"estimatedFullChargeBy":"5:00
+# a.m."}}'
 
 
 class EVCar(object):
@@ -65,6 +71,25 @@ class EVCar(object):
                 setattr(self, k, v)
             else:
                 raise KeyError("No attribute named %s" % k)
+
+    def from_json(self, data):
+        try:
+            res = json.loads(data)
+
+            if res["serverErrorMsgs"]:
+                raise Exception(res["serverErrorMsgs"])
+
+            d = res["data"]
+            self.charge_mode = d['chargeMode']
+            self.charge_percent = d['batteryLevel']
+            self.plugged_in = (d['plugState'] == "plugged")
+            self.charging = d['chargeState']
+            self.range = d['electricRange']
+            self.mileage = d['totalMiles']
+        except json.decoder.JSONDecodeError:
+            _LOGGER.exception("Failure to decode json: %s" % data)
+        except KeyError as e:
+            _LOGGER.exception("Expected key not found")
 
     def __str__(self):
         return ("<EVCar vin=%s, range=%s miles, bat=%s%%, plugged_in=%s, "
@@ -141,14 +166,14 @@ Content: %s
 Location: %s
             """ % (self.cookies, res.content, res.history))
 
-    def car_data(self):
+    def update_cars(self):
         headers = {"user-agent": USER_AGENT}
-        cars = []
         for c in self.cars:
             url = EVSTATS_URL.format(c.vin, c.onstar)
             res = requests.get(url, headers=headers,
                                cookies=self.cookies, allow_redirects=False)
-            print(res.content)
+            c.from_json(res.content)
+        return self.cars
 
     def _status_bar_right(self, driver):
         return driver.find_element_by_css_selector(
