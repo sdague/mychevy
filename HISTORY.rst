@@ -2,6 +2,11 @@
 History
 =======
 
+0.3.0 (2018-01-30)
+------------------
+
+* Change data collection to use json parsing instead of screen scraping after login
+
 0.2.0 (2018-01-21)
 ------------------
 
