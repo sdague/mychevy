@@ -47,6 +47,10 @@ USER_AGENT = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_4) "
 # a.m."}}'
 
 
+class ServerError(Exception):
+    pass
+
+
 class EVCar(object):
 
     def __init__(self, est_range=0, mileage=0, plugged_in=False,
@@ -75,8 +79,9 @@ class EVCar(object):
         try:
             res = json.loads(data)
 
-            if res["serverErrorMsgs"]:
-                raise Exception(res["serverErrorMsgs"])
+            # I've never actually seen serverErrorMsgs, but allow for them
+            if res["serverErrorMsgs"] or type(res["data"]) == str:
+                raise ServerError(res)
 
             d = res["data"]
             self.charge_mode = d['chargeMode']
