@@ -2,6 +2,11 @@
 History
 =======
 
+0.3.1 (2018-01-31)
+------------------
+
+* Nicer error handling when server throws an error
+
 0.3.0 (2018-01-30)
 ------------------
 
