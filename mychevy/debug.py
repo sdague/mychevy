@@ -6,7 +6,7 @@ import configparser
 
 import click
 
-from mychevy.mychevy import MyChevy
+from mychevy.mychevy import MyChevy, ServerError
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
@@ -28,10 +28,13 @@ def main(config=None, show_browser=None):
     for c in page.cars:
         click.echo(c)
     click.echo("Updating cars with data")
-    page.update_cars()
-    click.echo("Displaying found cars with data")
-    for c in page.cars:
-        click.echo(c)
+    try:
+        page.update_cars()
+        click.echo("Displaying found cars with data")
+        for c in page.cars:
+            click.echo(c)
+    except ServerError as e:
+        click.echo("OnStar Network Failure: %s" % e)
 
 
 if __name__ == "__main__":
