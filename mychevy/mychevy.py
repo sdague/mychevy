@@ -51,22 +51,42 @@ class ServerError(Exception):
     pass
 
 
+CAR_ATTRS = ("chargeMode", "chargeState",
+             "batteryLevel", "electricRange",
+             "totalRange", "totalMiles", "electricMiles",
+             "gasMiles", "voltage", "estimatedFullChargeBy")
+
+
 class EVCar(object):
 
-    def __init__(self, est_range=0, mileage=0, plugged_in=False,
-                 state="", charge_percent=0, eta=0, charge_mode="",
-                 charging="", vin="", onstar=""):
+    def __init__(self, car):
         super(EVCar, self).__init__()
-        self.plugged_in = plugged_in
-        self.range = est_range
-        self.percent = charge_percent
-        self.mileage = mileage
-        self.eta = eta
-        self.state = state
-        self.charge_mode = charge_mode
-        self.charging = charging
-        self.vin = vin
-        self.onstar = onstar
+        self.vin = car["vin"]
+        self.vid = car["vehicle_id"]
+        self.onstar = car["onstarAccountNumber"]
+        self.year = car["year"]
+        self.make = car["make"]
+        self.model = car["model"]
+        self.img = car["imageUrl"]
+
+        # computed binaries
+        self.plugged_in = False
+
+        # car stats that we'll update later
+        self.chargeMode = ""
+        self.batteryLevel = ""
+        self.chargeState = ""
+        self.electricRange = 0
+        self.totalRange = 0
+        self.totalMiles = 0
+        self.electricMiles = 0
+        self.gasMiles = 0
+        self.voltage = 0
+        self.estimatedFullChargeBy = ""
+
+    @property
+    def name(self):
+        return "{0} {1} {2}".format(self.year, self.make, self.model)
 
     def update(self, *args, **kwargs):
         for k, v in kwargs.items():
@@ -84,24 +104,25 @@ class EVCar(object):
                 raise ServerError(res)
 
             d = res["data"]
-            self.charge_mode = d['chargeMode']
-            self.percent = d['batteryLevel']
+
             self.plugged_in = (d['plugState'] == "plugged")
-            self.charging = d['chargeState']
-            self.range = d['electricRange']
-            self.mileage = d['totalMiles']
+
+            for a in CAR_ATTRS:
+                setattr(self, a, d[a])
+
         except json.decoder.JSONDecodeError:
             _LOGGER.exception("Failure to decode json: %s" % data)
         except KeyError as e:
             _LOGGER.exception("Expected key not found")
 
     def __str__(self):
-        return ("<EVCar vin=%s, range=%s miles, bat=%s%%, plugged_in=%s, "
-                "mileage=%s miles, charging=%s, charge_mode=%s, eta=%s, "
-                "state=%s>" % (
-                    self.vin, self.range, self.percent, self.plugged_in,
-                    self.mileage,
-                    self.charging, self.charge_mode, self.eta, self.state))
+        return ("<EVCar name=%s, totalRange=%s miles, batteryLevel=%s%%, "
+                "plugged_in=%s, "
+                "totalMiles=%s miles, chargeState=%s, chargeMode=%s, "
+                "estimatedFullChargeBy=%s>" % (
+                    self.name, self.totalRange, self.batteryLevel,
+                    self.plugged_in, self.totalMiles, self.chargeState,
+                    self.chargeMode, self.estimatedFullChargeBy))
 
 
 class MyChevy(object):
@@ -155,10 +176,9 @@ class MyChevy(object):
                 raise Exception(data["serverErrorMsgs"])
 
             self.cars = []
+            _LOGGER.debug("Vehicles: %s", data['data']['vehicles'])
             for vehicle in data['data']['vehicles']:
-                self.cars.append(
-                    EVCar(vin=vehicle['vin'],
-                          onstar=vehicle['onstarAccountNumber']))
+                self.cars.append(EVCar(vehicle))
         except Exception:
             raise Exception("""
 Something went wrong!

@@ -3,6 +3,7 @@
 """Console script for mychevy."""
 
 import configparser
+import logging
 
 import click
 
@@ -15,10 +16,15 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option('--config', '-c', type=click.File('r'),
               required=True,
               help="Config file with my.chevy credentials")
-def main(config=None, show_browser=None):
+@click.option('--verbose', '-v', default=False, is_flag=True,
+              help="Run more verbose")
+def main(config=None, verbose=False):
     """Console script for mychevy"""
     cfile = configparser.ConfigParser()
     cfile.read_file(config)
+
+    if verbose:
+        logging.basicConfig(level=logging.DEBUG)
 
     page = MyChevy(cfile["default"]["user"], cfile["default"]["passwd"])
     click.echo("Logging in... this takes a bit")
