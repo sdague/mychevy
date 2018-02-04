@@ -97,7 +97,7 @@ class EVCar(object):
 
     def from_json(self, data):
         try:
-            res = json.loads(data)
+            res = json.loads(data.decode('utf-8'))
 
             # I've never actually seen serverErrorMsgs, but allow for them
             if res["serverErrorMsgs"] or type(res["data"]) == str:
