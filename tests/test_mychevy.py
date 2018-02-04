@@ -3,23 +3,32 @@
 
 """Tests for `mychevy` package."""
 
+import unittest
+
 import pytest
 
+from mychevy.mychevy import EVCar, ServerError
 
-from mychevy import mychevy
+CAR1 = {
+    "vin": "fakevin",
+    "vehicle_id": "123",
+    "onstarAccountNumber": "123",
+    "year": "2017",
+    "make": "Chevy",
+    "model": "Bolt",
+    "imageUrl": ""
+}
 
 
-@pytest.fixture
-def response():
-    """Sample pytest fixture.
+class TestMyChevy(unittest.TestCase):
 
-    See more at: http://doc.pytest.org/en/latest/fixture.html
-    """
-    # import requests
-    # return requests.get('https://github.com/audreyr/cookiecutter-pypackage')
+    def test_car_parse(self):
+        car = EVCar(CAR1)
+        assert car.vid == "123"
 
-
-def test_content(response):
-    """Sample pytest test function with the pytest fixture as an argument."""
-    # from bs4 import BeautifulSoup
-    # assert 'GitHub' in BeautifulSoup(response.content).title.string
+    def test_car_server_error(self):
+        car = EVCar(CAR1)
+        with pytest.raises(ServerError):
+            car.from_json(
+                '{"messages": [], "serverErrorMsgs": [], '
+                '"data": "SERVER ERROR"}')
