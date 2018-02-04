@@ -110,7 +110,7 @@ class EVCar(object):
             for a in CAR_ATTRS:
                 setattr(self, a, d[a])
 
-        except json.decoder.JSONDecodeError:
+        except json.JSONDecodeError:
             _LOGGER.exception("Failure to decode json: %s" % data)
         except KeyError as e:
             _LOGGER.exception("Expected key not found")
