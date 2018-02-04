@@ -2,6 +2,12 @@
 History
 =======
 
+0.3.2 (2018-02-04)
+------------------
+
+* Add simple unit testing
+* Stop testing on python 3.4 so we can use more advanced exceptions
+
 0.3.1 (2018-01-31)
 ------------------
 
