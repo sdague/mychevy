@@ -33,8 +33,8 @@ class TestMyChevy(unittest.TestCase):
         car = EVCar(CAR1)
         with pytest.raises(ServerError):
             car.from_json(
-                '{"messages": [], "serverErrorMsgs": [], '
-                '"data": "SERVER ERROR"}')
+                b'{"messages": [], "serverErrorMsgs": [], '
+                b'"data": "SERVER ERROR"}')
 
     def test_json_parse(self):
         car = EVCar(CAR1)
