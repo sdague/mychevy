@@ -35,7 +35,11 @@ def main(config=None, verbose=False):
         click.echo(c)
     click.echo("Updating cars with data")
     try:
-        page.update_cars()
+        if cfile.has_option("default","vin"):
+            page.update_cars(cfile["default"]["vin"])
+        else:
+            page.update_cars()
+
         click.echo("Displaying found cars with data")
         for c in page.cars:
             click.echo(c)

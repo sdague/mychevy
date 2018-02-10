@@ -100,7 +100,8 @@ class EVCar(object):
             res = json.loads(data.decode('utf-8'))
 
             # I've never actually seen serverErrorMsgs, but allow for them
-            if res["serverErrorMsgs"] or type(res["data"]) == str:
+            # The Error message I was seeing was data = {"messages":[],"serverErrorMsgs":[],"data":"SERVER ERROR"}
+            if res["serverErrorMsgs"] or type(res["data"]) == str or res['data'] == 'SERVER ERROR':
                 raise ServerError(res)
 
             d = res["data"]
@@ -110,7 +111,7 @@ class EVCar(object):
             for a in CAR_ATTRS:
                 setattr(self, a, d[a])
 
-        except json.JSONDecodeError:
+        except ValueError:
             _LOGGER.exception("Failure to decode json: %s" % data)
         except KeyError as e:
             _LOGGER.exception("Expected key not found")
@@ -190,11 +191,18 @@ Content: %s
 Location: %s
             """ % (self.cookies, res.content, res.history))
 
-    def update_cars(self):
+    def update_cars(self, vin=None):
         headers = {"user-agent": USER_AGENT}
         for c in self.cars:
-            url = EVSTATS_URL.format(c.vin, c.onstar)
-            res = requests.get(url, headers=headers,
-                               cookies=self.cookies, allow_redirects=False)
-            c.from_json(res.content)
+            if vin:
+                if vin == c.vin:
+                    url = EVSTATS_URL.format(c.vin, c.onstar)
+                    res = requests.get(url, headers=headers,cookies=self.cookies, allow_redirects=False)
+                    c.from_json(res.content)
+                    return [c]
+            else:
+                url = EVSTATS_URL.format(c.vin, c.onstar)
+                res = requests.get(url, headers=headers,cookies=self.cookies, allow_redirects=False)
+                c.from_json(res.content)
+
         return self.cars

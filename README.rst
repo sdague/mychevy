@@ -74,6 +74,9 @@ Usage is very basic.
    # update stats for all cars, and returns the list of cars. This will take
    # 60+ seconds per car
    cars = page.update_cars()
+   
+   # Optionally you can call update_cars() with a vin of your choice to only update that car.
+   cars = page.update_cars('vin number')
 
    # Percent battery charge
    print(cars[0].percent)
@@ -98,13 +101,14 @@ provided.
    <EVCar vin="...", range=185 miles, bat=100%, plugged_in=True, mileage=903 miles, charging=Your battery is fully charged., charge_mode=Departure Based, eta=None, state="">
 
 config.ini must include your user and password for the mychevy site in the
-following format:
+following format, 'vin' is optional:
 
 .. code-block:: ini
 
    [default]
    user = my@email.address
    passwd = my@wes0mepa55w0rd
+   vin = KL821337VIN283498207
 
 The ``mychevy`` command also takes the ``-S`` flag which makes the selenium
 controlled web browser non headless during it's execution. This can be useful

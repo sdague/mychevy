@@ -27,7 +27,10 @@ def main(config=None, show_browser=None):
     click.echo("Loading data, this takes up to 2 minutes...")
     page.login()
     page.get_cars()
-    cars = page.update_cars()
+    if cfile.has_option("default","vin"):
+        cars = page.update_cars(cfile["default"]["vin"])
+    else:
+        cars = page.update_cars()
     for c in cars:
         click.echo(c)
 
