@@ -176,8 +176,8 @@ class MyChevy(object):
                 raise Exception(data["serverErrorMsgs"])
 
             self.cars = []
-            _LOGGER.debug("Vehicles: %s", data['data']['vehicles'])
-            for vehicle in data['data']['vehicles']:
+            _LOGGER.debug("Vehicles: %s", data['data']['vehicleMap'])
+            for vid, vehicle in data['data']['vehicleMap'].items():
                 self.cars.append(EVCar(vehicle))
         except Exception:
             raise Exception("""
