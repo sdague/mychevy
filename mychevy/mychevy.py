@@ -39,6 +39,7 @@ TIMEOUT = 120
 
 SUCCESS_URL = "https://my.chevrolet.com/init/loginSuccessData"
 EVSTATS_URL = "https://my.chevrolet.com/vehicleProfile/{0}/{1}/evstats?cb={2}.{3}"
+SESSION_URL = "https://my.chevrolet.com/vehicleProfile/{0}/{1}/createAppSessionKey?cb={2}.{3}"
 
 USER_AGENT = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_4) "
               "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -194,6 +195,11 @@ Location: %s
     def update_cars(self):
         headers = {"user-agent": USER_AGENT}
         for c in self.cars:
+            now = int(round(time.time() * 1000))
+            session = SESSION_URL.format(c.vin, c.onstar, now, 15258643512040)
+            res = requests.get(session, headers=headers,
+                               cookies=self.cookies, allow_redirects=False)
+
             now = int(round(time.time() * 1000))
             url = EVSTATS_URL.format(c.vin, c.onstar, now, 15258643512040)
             res = requests.get(url, headers=headers,
