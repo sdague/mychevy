@@ -38,8 +38,10 @@ DEFAULT_DRIVER = "/usr/local/bin/chromedriver"
 TIMEOUT = 120
 
 SUCCESS_URL = "https://my.chevrolet.com/init/loginSuccessData"
-EVSTATS_URL = "https://my.chevrolet.com/vehicleProfile/{0}/{1}/evstats?cb={2}.{3}"
-SESSION_URL = "https://my.chevrolet.com/vehicleProfile/{0}/{1}/createAppSessionKey?cb={2}.{3}"
+EVSTATS_URL = ("https://my.chevrolet.com/vehicleProfile/"
+               "{0}/{1}/evstats?cb={2}.{3}")
+SESSION_URL = ("https://my.chevrolet.com/vehicleProfile/"
+               "{0}/{1}/createAppSessionKey?cb={2}.{3}")
 
 USER_AGENT = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_4) "
               "AppleWebKit/537.36 (KHTML, like Gecko) "
