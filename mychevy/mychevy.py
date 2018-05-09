@@ -17,6 +17,7 @@
 import json
 import logging
 import os
+import time
 
 import requests
 
@@ -37,7 +38,7 @@ DEFAULT_DRIVER = "/usr/local/bin/chromedriver"
 TIMEOUT = 120
 
 SUCCESS_URL = "https://my.chevrolet.com/init/loginSuccessData"
-EVSTATS_URL = "https://my.chevrolet.com/vehicleProfile/{0}/{1}/evstats"
+EVSTATS_URL = "https://my.chevrolet.com/vehicleProfile/{0}/{1}/evstats?cb={2}.{3}"
 
 USER_AGENT = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_4) "
               "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -193,7 +194,8 @@ Location: %s
     def update_cars(self):
         headers = {"user-agent": USER_AGENT}
         for c in self.cars:
-            url = EVSTATS_URL.format(c.vin, c.onstar)
+            now = int(round(time.time() * 1000))
+            url = EVSTATS_URL.format(c.vin, c.onstar, now, 15258643512040)
             res = requests.get(url, headers=headers,
                                cookies=self.cookies, allow_redirects=False)
             c.from_json(res.content)
