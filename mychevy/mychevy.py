@@ -118,11 +118,11 @@ class EVCar(object):
             _LOGGER.exception("Expected key not found")
 
     def __str__(self):
-        return ("<EVCar name=%s, totalRange=%s miles, batteryLevel=%s%%, "
+        return ("<EVCar name=%s, electricRange=%s miles, batteryLevel=%s%%, "
                 "plugged_in=%s, "
                 "totalMiles=%s miles, chargeState=%s, chargeMode=%s, "
                 "estimatedFullChargeBy=%s>" % (
-                    self.name, self.totalRange, self.batteryLevel,
+                    self.name, self.electricRange, self.batteryLevel,
                     self.plugged_in, self.totalMiles, self.chargeState,
                     self.chargeMode, self.estimatedFullChargeBy))
 
@@ -204,5 +204,6 @@ Location: %s
             url = EVSTATS_URL.format(c.vin, c.onstar, now, 15258643512040)
             res = requests.get(url, headers=headers,
                                cookies=self.cookies, allow_redirects=False)
+            _LOGGER.debug("Vehicle data: %s" % res.content)
             c.from_json(res.content)
         return self.cars
