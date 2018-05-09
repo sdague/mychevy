@@ -2,6 +2,10 @@
 History
 =======
 
+0.4.0 (2018-05-09)
+------------------
+* my.chevy website is finally back up, data structure parsing adjusted to match it
+
 0.3.2 (2018-02-04)
 ------------------
 
