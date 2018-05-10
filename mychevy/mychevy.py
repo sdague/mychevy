@@ -175,7 +175,7 @@ class MyChevy(object):
         res = requests.get(SUCCESS_URL, headers=headers,
                            cookies=self.cookies, allow_redirects=False)
         try:
-            data = json.loads(res.content)
+            data = json.loads(res.content.decode('utf-8'))
             if data["serverErrorMsgs"]:
                 raise Exception(data["serverErrorMsgs"])
 
