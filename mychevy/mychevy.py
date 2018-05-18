@@ -237,6 +237,8 @@ Location: %s
 
     @retry(ServerError, logger=_LOGGER)
     def _fetch_car(self, car):
+        headers = {"user-agent": USER_AGENT}
+        _LOGGER.debug("Fetching car...")
         now = int(round(time.time() * 1000))
         session = SESSION_URL.format(car.vin, car.onstar, now, KEY)
         res = requests.get(session, headers=headers,
@@ -250,7 +252,6 @@ Location: %s
         car.from_json(res.content)
 
     def update_cars(self):
-        headers = {"user-agent": USER_AGENT}
         for c in self.cars:
             self._fetch_car(c)
         return self.cars
