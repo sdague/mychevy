@@ -14,6 +14,7 @@
 
 """Main module."""
 
+from functools import wraps
 import json
 import logging
 import os
@@ -36,6 +37,7 @@ PASS_FIELD = "Login_Password"
 LOGIN_BUTTON = "Login_Button"
 DEFAULT_DRIVER = "/usr/local/bin/chromedriver"
 TIMEOUT = 120
+KEY = 15258643512041
 
 SUCCESS_URL = "https://my.chevrolet.com/init/loginSuccessData"
 EVSTATS_URL = ("https://my.chevrolet.com/vehicleProfile/"
@@ -59,6 +61,44 @@ CAR_ATTRS = ("chargeMode", "chargeState",
              "batteryLevel", "electricRange",
              "totalRange", "totalMiles", "electricMiles",
              "gasMiles", "voltage", "estimatedFullChargeBy")
+
+
+
+def retry(exceptions, tries=4, delay=3, backoff=2, logger=None):
+    """
+    Retry calling the decorated function using an exponential backoff.
+
+    Args:
+        exceptions: The exception to check. may be a tuple of
+            exceptions to check.
+        tries: Number of times to try (not retry) before giving up.
+        delay: Initial delay between retries in seconds.
+        backoff: Backoff multiplier (e.g. value of 2 will double the delay
+            each retry).
+        logger: Logger to use. If None, print.
+    """
+    def deco_retry(f):
+
+        @wraps(f)
+        def f_retry(*args, **kwargs):
+            mtries, mdelay = tries, delay
+            while mtries > 1:
+                try:
+                    return f(*args, **kwargs)
+                except exceptions as e:
+                    msg = '{}, Retrying in {} seconds...'.format(e, mdelay)
+                    if logger:
+                        logger.warning(msg)
+                    else:
+                        print(msg)
+                    time.sleep(mdelay)
+                    mtries -= 1
+                    mdelay *= backoff
+            return f(*args, **kwargs)
+
+        return f_retry  # true decorator
+
+    return deco_retry
 
 
 class EVCar(object):
@@ -140,6 +180,7 @@ class MyChevy(object):
         self.headless = headless
         self.cars = []
         self.cookies = None
+        self.history = []
 
     def login(self):
         """New login path, to be used with json data path."""
@@ -194,18 +235,22 @@ Content: %s
 Location: %s
             """ % (self.cookies, res.content, res.history))
 
+    @retry(ServerError, logger=_LOGGER)
+    def _fetch_car(self, car):
+        now = int(round(time.time() * 1000))
+        session = SESSION_URL.format(car.vin, car.onstar, now, KEY)
+        res = requests.get(session, headers=headers,
+                           cookies=self.cookies, allow_redirects=False)
+
+        now = int(round(time.time() * 1000))
+        url = EVSTATS_URL.format(car.vin, car.onstar, now, KEY)
+        res = requests.get(url, headers=headers,
+                           cookies=self.cookies, allow_redirects=False)
+        _LOGGER.debug("Vehicle data: %s" % res.content)
+        car.from_json(res.content)
+
     def update_cars(self):
         headers = {"user-agent": USER_AGENT}
         for c in self.cars:
-            now = int(round(time.time() * 1000))
-            session = SESSION_URL.format(c.vin, c.onstar, now, 15258643512040)
-            res = requests.get(session, headers=headers,
-                               cookies=self.cookies, allow_redirects=False)
-
-            now = int(round(time.time() * 1000))
-            url = EVSTATS_URL.format(c.vin, c.onstar, now, 15258643512040)
-            res = requests.get(url, headers=headers,
-                               cookies=self.cookies, allow_redirects=False)
-            _LOGGER.debug("Vehicle data: %s" % res.content)
-            c.from_json(res.content)
+            self._fetch_car(c)
         return self.cars
