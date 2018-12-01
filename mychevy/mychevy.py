@@ -168,6 +168,7 @@ class MyChevy(object):
         self.cookies = None
         self.history = []
         self.session = None
+        self.account = None
 
     def login(self):
         """New login path, to be used with json data path."""
@@ -179,12 +180,12 @@ class MyChevy(object):
                      "ocevKey": "", "temporaryPasswordUsedFlag": "",
                      "actc": "true"}
         # It doesn't like an empty session so load the login page first.
-        self.login = self.session.get(HOME_URL)
-        self.login = self.session.post(LOGIN_URL, logonData)
+        self.account = self.session.get(HOME_URL)
+        self.account = self.session.post(LOGIN_URL, logonData)
 
     def get_cars(self):
         try:
-            data = json.loads(self.login.content.decode('utf-8'))
+            data = json.loads(self.account.content.decode('utf-8'))
             if data["serverErrorMsgs"]:
                 raise Exception(data["serverErrorMsgs"])
 
@@ -201,7 +202,7 @@ Cookies: %s
 Content: %s
 
 Location: %s
-            """ % (self.login.cookies, self.login.content, self.login.history))
+            """ % (self.account.cookies, self.account.content, self.account.history))
 
     @retry(ServerError, logger=_LOGGER)
     def _fetch_car(self, car):
