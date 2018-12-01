@@ -17,7 +17,6 @@
 from functools import wraps
 import json
 import logging
-import os
 import time
 import requests
 
@@ -145,7 +144,7 @@ class EVCar(object):
 
         except json.JSONDecodeError:
             _LOGGER.exception("Failure to decode json: %s" % data)
-        except KeyError as e:
+        except KeyError:
             _LOGGER.exception("Expected key not found")
 
     def __str__(self):
@@ -160,7 +159,7 @@ class EVCar(object):
 
 class MyChevy(object):
 
-    def __init__(self, user, passwd, driver=DEFAULT_DRIVER, headless=True): 
+    def __init__(self, user, passwd, driver=None, headless=True):
         super(MyChevy, self).__init__()
 
         self.user = user
@@ -174,16 +173,16 @@ class MyChevy(object):
         """New login path, to be used with json data path."""
         # Get the main page
         self.session = requests.Session()
-        
-        # Login as user
-        logonData ={"j_username":self.user,"j_password":self.passwd,"ocevKey":"","temporaryPasswordUsedFlag":"","actc":"true"}
-        ##It doesn't like an empty session so load the login page first.
-        self.login = self.session.get(HOME_URL)
-        self.login = self.session.post(LOGIN_URL,logonData)
 
+        # Login as user
+        logonData = {"j_username": self.user, "j_password": self.passwd,
+                     "ocevKey": "", "temporaryPasswordUsedFlag": "",
+                     "actc": "true"}
+        # It doesn't like an empty session so load the login page first.
+        self.login = self.session.get(HOME_URL)
+        self.login = self.session.post(LOGIN_URL, logonData)
 
     def get_cars(self):
-        headers = {"user-agent": USER_AGENT}
         try:
             data = json.loads(self.login.content.decode('utf-8'))
             if data["serverErrorMsgs"]:
@@ -202,7 +201,7 @@ Cookies: %s
 Content: %s
 
 Location: %s
-            """ % (self.cookies, res.content, res.history))
+            """ % (self.login.cookies, self.login.content, self.login.history))
 
     @retry(ServerError, logger=_LOGGER)
     def _fetch_car(self, car):
@@ -211,12 +210,12 @@ Location: %s
         now = int(round(time.time() * 1000))
         session = SESSION_URL.format(car.vin, car.onstar, now, KEY)
         res = self.session.get(session, headers=headers,
-                           cookies=self.cookies, allow_redirects=False)
+                               cookies=self.cookies, allow_redirects=False)
 
         now = int(round(time.time() * 1000))
         url = EVSTATS_URL.format(car.vin, car.onstar, now, KEY)
         res = self.session.get(url, headers=headers,
-                           cookies=self.cookies, allow_redirects=False)
+                               cookies=self.cookies, allow_redirects=False)
         _LOGGER.debug("Vehicle data: %s" % res.content)
         car.from_json(res.content)
 
