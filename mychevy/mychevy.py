@@ -202,7 +202,8 @@ Cookies: %s
 Content: %s
 
 Location: %s
-            """ % (self.account.cookies, self.account.content, self.account.history))
+            """ % (self.account.cookies, self.account.content,
+                   self.account.history))
 
     @retry(ServerError, logger=_LOGGER)
     def _fetch_car(self, car):
