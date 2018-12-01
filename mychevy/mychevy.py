@@ -160,7 +160,7 @@ class EVCar(object):
 
 class MyChevy(object):
 
-    def __init__(self, user, passwd):
+    def __init__(self, user, passwd, driver=DEFAULT_DRIVER, headless=True): 
         super(MyChevy, self).__init__()
 
         self.user = user
