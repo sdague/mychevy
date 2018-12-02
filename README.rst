@@ -18,7 +18,7 @@ mychevy
      :alt: Updates
 
 
-Python interface to My Chevy website via Selenium
+Python interface to My Chevy website
 
 Unlike Tesla, GM does not provide a consumer level API to their vehicles. I
 tried to sign up for their developer program after purchasing my Chevy Bolt,
@@ -28,30 +28,16 @@ how charged your battery is. This is all built with a javascript framework, and
 the data loads off the OnStar network with a 60 - 120 second delay (OnStar is a
 rather slow proprietary cellular network)
 
-This library does the craziest thing possible: uses a headless chrome
-browser to log into the mychevy website, captures the session cookies needed to
-interact with backend json services, then calls them.
+This library logs into the mychevy website, and uses the API that the javascript
+on the site uses to load the onstar data.
 
 Installation
 ============
 
-Installation for this library is more than just a pip install, because you must
-**also** install Google Chrome, and the Chrome Webdriver from selenium.
+Installation for this library is just a pip install.
 
-1. Install Google Chrome (real Chrome, Chromium doesn't count)
-2. Install Chrome Web driver, put it in /usr/local/bin
+1. pip install mychevy
 
-.. code-block:: bash
-
-   CHROME_DRIVER_VERSION=`curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE`
-   wget -N http://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip -P /tmp
-   unzip /tmp/chromedriver_linux64.zip -d /tmp
-   sudo install -m 0755 -o root /tmp/chromedriver /usr/local/bin/chromedriver
-
-
-3. pip install mychevy
-
-The last part will pull in all selenium bindings.
 
 Usage
 =====
@@ -65,7 +51,7 @@ Usage is very basic.
    page = MyChevy("<username>", "<password>")
    # This takes up to 2 minutes to return, be patient
 
-   # build credentials, needs real selenium
+   # build credentials and starts a session on the mychevy site
    page.login()
 
    # gets a list of cars associated with your account
@@ -79,7 +65,7 @@ Usage is very basic.
    print(cars[0].percent)
 
 
-Every invocation of ``login()`` creates a whole separate browser to avoid
+Every invocation of ``login()`` creates a whole new session to avoid
 credential timeouts.
 
 It is not recommended that you run this very frequently. Something like once an
@@ -106,9 +92,6 @@ following format:
    user = my@email.address
    passwd = my@wes0mepa55w0rd
 
-The ``mychevy`` command also takes the ``-S`` flag which makes the selenium
-controlled web browser non headless during it's execution. This can be useful
-for eyeballing why things go wrong (there are so many ways this can go wrong).
 
 Caveats
 =======
@@ -131,10 +114,6 @@ bubble gum and duct tape of which it has heard makes the internet go round.
   these windows of time. So it's not an OnStar failure, but it's a lack of
   robustness somewhere on the Web side, or the gateway dedicated for serving
   OnStar requests.
-
-* It launches a whole web browser to get a single python object
-
-  It's cool that it all works, but it's a lot of moving parts.
 
 As such, this software will always be classified Alpha on Pypi. It can and will
 break. For that I'm sorry. But it's the best I've got.
