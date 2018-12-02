@@ -22,8 +22,7 @@ def main(config=None, show_browser=None):
     cfile = configparser.ConfigParser()
     cfile.read_file(config)
 
-    page = MyChevy(cfile["default"]["user"], cfile["default"]["passwd"],
-                   headless=(not show_browser))
+    page = MyChevy(cfile["default"]["user"], cfile["default"]["passwd"])
     click.echo("Loading data, this takes up to 2 minutes...")
     page.login()
     page.get_cars()

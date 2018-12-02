@@ -12,7 +12,6 @@ with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
 requirements = [
-    'selenium>=3.8.0',
     'requests',
     'click>=6',
     # TODO: put package requirements here

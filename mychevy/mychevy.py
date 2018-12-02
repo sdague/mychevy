@@ -17,31 +17,20 @@
 from functools import wraps
 import json
 import logging
-import os
 import time
-
 import requests
-
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
 
 
 _LOGGER = logging.getLogger(__name__)
 
-LOGIN_URL = "https://my.chevrolet.com/login"
-USER_FIELD = "Login_Username"
-PASS_FIELD = "Login_Password"
-LOGIN_BUTTON = "Login_Button"
-DEFAULT_DRIVER = "/usr/local/bin/chromedriver"
+LOGIN_URL = "https://my.chevrolet.com/oc_login"
 TIMEOUT = 120
 KEY = 15258643512041
 
 SUCCESS_URL = "https://my.chevrolet.com/init/loginSuccessData"
-EVSTATS_URL = ("https://my.chevrolet.com/vehicleProfile/"
-               "{0}/{1}/evstats?cb={2}.{3}")
+HOME_URL = "https://my.chevrolet.com/login"
+EVSTATS_URL = ("https://my.chevrolet.com/api/vehicleProfile/"
+               "{0}/{1}/evstats/false?cb={2}.{3}")
 SESSION_URL = ("https://my.chevrolet.com/vehicleProfile/"
                "{0}/{1}/createAppSessionKey?cb={2}.{3}")
 
@@ -155,7 +144,7 @@ class EVCar(object):
 
         except json.JSONDecodeError:
             _LOGGER.exception("Failure to decode json: %s" % data)
-        except KeyError as e:
+        except KeyError:
             _LOGGER.exception("Expected key not found")
 
     def __str__(self):
@@ -170,52 +159,33 @@ class EVCar(object):
 
 class MyChevy(object):
 
-    def __init__(self, user, passwd, driver=DEFAULT_DRIVER, headless=True):
+    def __init__(self, user, passwd, driver=None, headless=True):
         super(MyChevy, self).__init__()
 
-        self.chromedriver = driver
         self.user = user
         self.passwd = passwd
-        self.headless = headless
         self.cars = []
         self.cookies = None
         self.history = []
+        self.session = None
+        self.account = None
 
     def login(self):
         """New login path, to be used with json data path."""
         # Get the main page
-        chrome_options = Options()
-        if self.headless:
-            chrome_options.add_argument("--headless")
+        self.session = requests.Session()
 
-        driver = webdriver.Chrome(
-            executable_path=os.path.abspath(self.chromedriver),
-            chrome_options=chrome_options)
-
-        driver.get(LOGIN_URL)
         # Login as user
-        user = driver.find_element_by_id(USER_FIELD)
-        passwd = driver.find_element_by_id(PASS_FIELD)
-        user.send_keys(self.user)
-        passwd.send_keys(self.passwd)
-        driver.find_element_by_id(LOGIN_BUTTON).click()
-
-        # wait for any cars to show up...
-        element_present = EC.presence_of_element_located(
-            (By.CLASS_NAME, 'panel-vehicle-display-snapshot'))
-        WebDriverWait(driver, TIMEOUT).until(element_present)
-
-        self.cookies = {}
-        for cookie in driver.get_cookies():
-            c = {cookie['name']: cookie['value']}
-            self.cookies.update(c)
+        logonData = {"j_username": self.user, "j_password": self.passwd,
+                     "ocevKey": "", "temporaryPasswordUsedFlag": "",
+                     "actc": "true"}
+        # It doesn't like an empty session so load the login page first.
+        self.account = self.session.get(HOME_URL)
+        self.account = self.session.post(LOGIN_URL, logonData)
 
     def get_cars(self):
-        headers = {"user-agent": USER_AGENT}
-        res = requests.get(SUCCESS_URL, headers=headers,
-                           cookies=self.cookies, allow_redirects=False)
         try:
-            data = json.loads(res.content.decode('utf-8'))
+            data = json.loads(self.account.content.decode('utf-8'))
             if data["serverErrorMsgs"]:
                 raise Exception(data["serverErrorMsgs"])
 
@@ -232,7 +202,8 @@ Cookies: %s
 Content: %s
 
 Location: %s
-            """ % (self.cookies, res.content, res.history))
+            """ % (self.account.cookies, self.account.content,
+                   self.account.history))
 
     @retry(ServerError, logger=_LOGGER)
     def _fetch_car(self, car):
@@ -240,13 +211,13 @@ Location: %s
         _LOGGER.debug("Fetching car...")
         now = int(round(time.time() * 1000))
         session = SESSION_URL.format(car.vin, car.onstar, now, KEY)
-        res = requests.get(session, headers=headers,
-                           cookies=self.cookies, allow_redirects=False)
+        res = self.session.get(session, headers=headers,
+                               cookies=self.cookies, allow_redirects=False)
 
         now = int(round(time.time() * 1000))
         url = EVSTATS_URL.format(car.vin, car.onstar, now, KEY)
-        res = requests.get(url, headers=headers,
-                           cookies=self.cookies, allow_redirects=False)
+        res = self.session.get(url, headers=headers,
+                               cookies=self.cookies, allow_redirects=False)
         _LOGGER.debug("Vehicle data: %s" % res.content)
         car.from_json(res.content)
 
