@@ -51,7 +51,7 @@ Usage is very basic.
    page = MyChevy("<username>", "<password>")
    # This takes up to 2 minutes to return, be patient
 
-   # build credentials, needs real selenium
+   # build credentials and starts a session on the mychevy site
    page.login()
 
    # gets a list of cars associated with your account
