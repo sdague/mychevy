@@ -180,8 +180,8 @@ class MyChevy(object):
                      "ocevKey": "", "temporaryPasswordUsedFlag": "",
                      "actc": "true"}
         # It doesn't like an empty session so load the login page first.
-        self.account = self.session.get(HOME_URL)
-        self.account = self.session.post(LOGIN_URL, logonData)
+        self.account = self.session.get(HOME_URL, timeout=TIMEOUT)
+        self.account = self.session.post(LOGIN_URL, logonData, timeout=TIMEOUT)
 
     def get_cars(self):
         try:
@@ -212,12 +212,15 @@ Location: %s
         now = int(round(time.time() * 1000))
         session = SESSION_URL.format(car.vin, car.onstar, now, KEY)
         res = self.session.get(session, headers=headers,
-                               cookies=self.cookies, allow_redirects=False)
+                               cookies=self.cookies, allow_redirects=False,
+                               timeout=TIMEOUT)
 
         now = int(round(time.time() * 1000))
         url = EVSTATS_URL.format(car.vin, car.onstar, now, KEY)
         res = self.session.get(url, headers=headers,
-                               cookies=self.cookies, allow_redirects=False)
+                               cookies=self.cookies, allow_redirects=False,
+                               timeout=TIMEOUT)
+
         _LOGGER.debug("Vehicle data: %s" % res.content)
         car.from_json(res.content)
 
