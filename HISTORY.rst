@@ -2,6 +2,11 @@
 History
 =======
 
+1.0.0 (2018-12-03)
+------------------
+* remove the selenium requirement (thanks starbuddy1995@gmail.com)
+* get my.chevy working with the new website (thanks starbuddy1995@gmail.com)
+
 0.4.0 (2018-05-09)
 ------------------
 * my.chevy website is finally back up, data structure parsing adjusted to match it
