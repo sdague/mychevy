@@ -18,7 +18,8 @@ deploy:
       alh5WDVzTFVEb3hGZEZsa2pIU2oraU1scGFEVGQ2Q25NQUk3QzUrYkh5c0F1Rk1XVmhtQmpaS3R5
       TmxCcTZ4VjRIK0JXZVhlRHQveXh3ZkdlUzFzVk9vUFVxVjNIY1RjQ01PV2ZZZTJVY0YwN0xnWUk9
   on:
-    tags: true
+    branch: master
+    # tags: true
   skip_existing: true
 install: pip install -U tox-travis
 language: python
