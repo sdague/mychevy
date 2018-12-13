@@ -29,7 +29,7 @@ test_requirements = [
 
 setup(
     name='mychevy',
-    version='1.0.1',
+    version='1.1.0',
     description="Python interface to My Chevy online data",
     long_description=readme + '\n\n' + history,
     author="Sean Dague",
