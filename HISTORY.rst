@@ -2,6 +2,10 @@
 History
 =======
 
+1.1.0 (2018-12-13)
+------------------
+* add explicit charging property
+
 1.0.0 (2018-12-03)
 ------------------
 * remove the selenium requirement (thanks starbuddy1995@gmail.com)
