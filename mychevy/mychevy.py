@@ -120,6 +120,10 @@ class EVCar(object):
     def name(self):
         return "{0} {1} {2}".format(self.year, self.make, self.model)
 
+    @property
+    def charging(self):
+        return self.chargeState == "charging"
+
     def update(self, *args, **kwargs):
         for k, v in kwargs.items():
             if hasattr(self, k):
@@ -138,7 +142,7 @@ class EVCar(object):
             d = res["data"]
 
             self.plugged_in = (d['plugState'] == "plugged")
-
+            _LOGGER.debug("Data: {}".format(d))
             for a in CAR_ATTRS:
                 setattr(self, a, d[a])
 
