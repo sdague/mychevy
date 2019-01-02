@@ -2,6 +2,11 @@
 History
 =======
 
+1.2.0 (2019-01-02)
+------------------
+* Support CA urls
+* Reduce implicit retries
+
 1.1.0 (2018-12-13)
 ------------------
 * add explicit charging property
