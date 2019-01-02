@@ -23,16 +23,34 @@ import requests
 
 _LOGGER = logging.getLogger(__name__)
 
-LOGIN_URL = "https://my.chevrolet.com/oc_login"
 TIMEOUT = 120
 KEY = 15258643512041
 
-SUCCESS_URL = "https://my.chevrolet.com/init/loginSuccessData"
-HOME_URL = "https://my.chevrolet.com/login"
-EVSTATS_URL = ("https://my.chevrolet.com/api/vehicleProfile/"
-               "{0}/{1}/evstats/false?cb={2}.{3}")
-SESSION_URL = ("https://my.chevrolet.com/vehicleProfile/"
-               "{0}/{1}/createAppSessionKey?cb={2}.{3}")
+URLS = {
+    "us": {
+        "success": "https://my.chevrolet.com/init/loginSuccessData",
+        "home": "https://my.chevrolet.com/login",
+        "login": "https://my.chevrolet.com/oc_login",
+        "evstats": ("https://my.chevrolet.com/api/vehicleProfile/"
+                    "{0}/{1}/evstats/false?cb={2}.{3}"),
+        "session": ("https://my.chevrolet.com/vehicleProfile/"
+                    "{0}/{1}/createAppSessionKey?cb={2}.{3}")
+    },
+    "ca": {
+        "success": "https://my.gm.ca/chevrolet/en/init/loginSuccessData",
+        "home": "https://my.gm.ca/chevrolet/en/login",
+        "login": "https://my.gm.ca/chevrolet/en/oc_login",
+        "evstats": ("https://my.gm.ca/chevrolet/en/api/vehicleProfile/"
+                    "{0}/{1}/evstats/false?cb={2}.{3}"),
+        "session": ("https://my.gm.ca/chevrolet/en/api/vehicleProfile/"
+                    "{0}/{1}/createAppSessionKey?cb={2}.{3}")
+    }
+}
+
+
+def get_url(kind="", country="us"):
+    return URLS[country][kind]
+
 
 USER_AGENT = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_4) "
               "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -163,7 +181,7 @@ class EVCar(object):
 
 class MyChevy(object):
 
-    def __init__(self, user, passwd, driver=None, headless=True):
+    def __init__(self, user, passwd, country="us"):
         super(MyChevy, self).__init__()
 
         self.user = user
@@ -173,6 +191,7 @@ class MyChevy(object):
         self.history = []
         self.session = None
         self.account = None
+        self.country = country
 
     def login(self):
         """New login path, to be used with json data path."""
@@ -184,8 +203,10 @@ class MyChevy(object):
                      "ocevKey": "", "temporaryPasswordUsedFlag": "",
                      "actc": "true"}
         # It doesn't like an empty session so load the login page first.
-        self.account = self.session.get(HOME_URL, timeout=TIMEOUT)
-        self.account = self.session.post(LOGIN_URL, logonData, timeout=TIMEOUT)
+        self.account = self.session.get(
+            get_url("home", self.country), timeout=TIMEOUT)
+        self.account = self.session.post(
+            get_url("login", self.country), logonData, timeout=TIMEOUT)
 
     def get_cars(self):
         try:
@@ -214,13 +235,15 @@ Location: %s
         headers = {"user-agent": USER_AGENT}
         _LOGGER.debug("Fetching car...")
         now = int(round(time.time() * 1000))
-        session = SESSION_URL.format(car.vin, car.onstar, now, KEY)
+        session = get_url("session", self.country).format(
+            car.vin, car.onstar, now, KEY)
         res = self.session.get(session, headers=headers,
                                cookies=self.cookies, allow_redirects=False,
                                timeout=TIMEOUT)
 
         now = int(round(time.time() * 1000))
-        url = EVSTATS_URL.format(car.vin, car.onstar, now, KEY)
+        url = get_url("evstats", self.country).format(
+            car.vin, car.onstar, now, KEY)
         res = self.session.get(url, headers=headers,
                                cookies=self.cookies, allow_redirects=False,
                                timeout=TIMEOUT)
