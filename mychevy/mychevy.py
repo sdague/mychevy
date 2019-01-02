@@ -70,7 +70,7 @@ CAR_ATTRS = ("chargeMode", "chargeState",
              "gasMiles", "voltage", "estimatedFullChargeBy")
 
 
-def retry(exceptions, tries=4, delay=3, backoff=2, logger=None):
+def retry(exceptions, tries=1, delay=3, backoff=2, logger=None):
     """
     Retry calling the decorated function using an exponential backoff.
 
