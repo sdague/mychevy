@@ -28,6 +28,9 @@ _LOGGER = logging.getLogger(__name__)
 TIMEOUT = 120
 KEY = 15258643512041
 
+LOGIN_URL = "https://custlogin.gm.com/gmb2cprod.onmicrosoft.com/B2C_1A_SeamlessMigration_SignUpOrSignIn/SelfAsserted?tx={}&p=B2C_1A_SeamlessMigration_SignUpOrSignIn"  # noqa
+TOKEN_URL = "https://custlogin.gm.com/gmb2cprod.onmicrosoft.com/B2C_1A_SeamlessMigration_SignUpOrSignIn/api/CombinedSigninAndSignup/confirmed?csrf_token={}&tx={}&p=B2C_1A_SeamlessMigration_SignUpOrSignIn"  # noqa
+
 URLS = {
     "us": {
         "success": "https://my.chevrolet.com/init/loginSuccessData",
@@ -56,6 +59,7 @@ URLS = {
 
 def get_url(kind="", country="us"):
     return URLS[country][kind]
+
 
 settings_json_re = re.compile("var SETTINGS = ({.*})")
 id_token_re = re.compile("name='id_token'.*value='(.*)'/>")
@@ -207,12 +211,7 @@ class MyChevy(object):
         # Get the main page
         self.session = requests.Session()
 
-        # Login as user
-        logonData = {"j_username": self.user, "j_password": self.passwd,
-                     "ocevKey": "", "temporaryPasswordUsedFlag": "",
-                     "actc": "true"}
         # It doesn't like an empty session so load the login page first.
-
         r = self.session.get(
             get_url("home", self.country), timeout=TIMEOUT)
         initial_url = urllib.parse.urlparse(r.request.url)
@@ -231,7 +230,7 @@ class MyChevy(object):
 
         # Login Request
         r = self.session.post(
-            "https://custlogin.gm.com/gmb2cprod.onmicrosoft.com/B2C_1A_SeamlessMigration_SignUpOrSignIn/SelfAsserted?tx={}&p=B2C_1A_SeamlessMigration_SignUpOrSignIn".format(trans_id),
+            LOGIN_URL.format(trans_id),
             {
                 "request_type": "RESPONSE",
                 "logonIdentifier": self.user,
@@ -243,9 +242,7 @@ class MyChevy(object):
         )
 
         # Generate Auth Code and ID Token
-        r = self.session.get(
-            "https://custlogin.gm.com/gmb2cprod.onmicrosoft.com/B2C_1A_SeamlessMigration_SignUpOrSignIn/api/CombinedSigninAndSignup/confirmed?csrf_token={}&tx={}&p=B2C_1A_SeamlessMigration_SignUpOrSignIn".format(csrf, trans_id)
-        )
+        r = self.session.get(TOKEN_URL.format(csrf, trans_id))
         r.raise_for_status()
         _LOGGER.debug("ID Token Content: %s", r.content)
         m = id_token_re.search(r.text)
@@ -263,7 +260,6 @@ class MyChevy(object):
         )
         r.raise_for_status()
         self.account = self.session.get(get_url("loginSuccessData", self.country), timeout=TIMEOUT)
-
 
     def get_cars(self):
         try:

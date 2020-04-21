@@ -2,6 +2,10 @@
 History
 =======
 
+2.0.1 (2020-04-21)
+------------------
+* flake8 fixes
+
 2.0.0 (2020-04-21)
 ------------------
 * Support new Azure based login. Thanks to @jaygun and me@lukecyca.com for core logic. Fixes issue #11
