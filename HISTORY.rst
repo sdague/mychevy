@@ -2,6 +2,10 @@
 History
 =======
 
+2.0.0 (2020-04-21)
+------------------
+* Support new Azure based login. Thanks to @jaygun and me@lukecyca.com for core logic. Fixes issue #11
+
 1.2.0 (2019-01-02)
 ------------------
 * Support CA urls

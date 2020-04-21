@@ -17,9 +17,11 @@
 from functools import wraps
 import json
 import logging
+import re
 import time
-import requests
+import urllib
 
+import requests
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -29,7 +31,9 @@ KEY = 15258643512041
 URLS = {
     "us": {
         "success": "https://my.chevrolet.com/init/loginSuccessData",
-        "home": "https://my.chevrolet.com/login",
+        'oc_login': 'https://my.chevrolet.com/oc_login',
+        'loginSuccessData': 'https://my.chevrolet.com/api/init/loginSuccessData',
+        "home": "https://my.chevrolet.com/home",
         "login": "https://my.chevrolet.com/oc_login",
         "evstats": ("https://my.chevrolet.com/api/vehicleProfile/"
                     "{0}/{1}/evstats/false?cb={2}.{3}"),
@@ -38,7 +42,9 @@ URLS = {
     },
     "ca": {
         "success": "https://my.gm.ca/chevrolet/en/init/loginSuccessData",
-        "home": "https://my.gm.ca/chevrolet/en/login",
+        "home": "https://my.gm.ca/gm/en/home",
+        'oc_login': 'https://my.gm.ca/gm/en/oc_login',
+        'loginSuccessData': 'https://my.gm.ca/gm/en/api/init/loginSuccessData',
         "login": "https://my.gm.ca/chevrolet/en/oc_login",
         "evstats": ("https://my.gm.ca/chevrolet/en/api/vehicleProfile/"
                     "{0}/{1}/evstats/false?cb={2}.{3}"),
@@ -50,6 +56,9 @@ URLS = {
 
 def get_url(kind="", country="us"):
     return URLS[country][kind]
+
+settings_json_re = re.compile("var SETTINGS = ({.*})")
+id_token_re = re.compile("name='id_token'.*value='(.*)'/>")
 
 
 USER_AGENT = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_4) "
@@ -70,7 +79,7 @@ CAR_ATTRS = ("chargeMode", "chargeState",
              "gasMiles", "voltage", "estimatedFullChargeBy")
 
 
-def retry(exceptions, tries=1, delay=3, backoff=2, logger=None):
+def retry(exceptions, tries=3, delay=3, backoff=2, logger=None):
     """
     Retry calling the decorated function using an exponential backoff.
 
@@ -203,10 +212,58 @@ class MyChevy(object):
                      "ocevKey": "", "temporaryPasswordUsedFlag": "",
                      "actc": "true"}
         # It doesn't like an empty session so load the login page first.
-        self.account = self.session.get(
+
+        r = self.session.get(
             get_url("home", self.country), timeout=TIMEOUT)
-        self.account = self.session.post(
-            get_url("login", self.country), logonData, timeout=TIMEOUT)
+        initial_url = urllib.parse.urlparse(r.request.url)
+        nonce = urllib.parse.parse_qs(initial_url.query).get('nonce')[0]
+
+        _LOGGER.debug("Initial URL %s, Nonce %s", initial_url, nonce)
+        m = settings_json_re.search(r.text)
+        if not m:
+            raise ValueError("SETTINGS not found in response")
+
+        settings_json = json.loads(m[1])
+        csrf = settings_json['csrf']
+        trans_id = settings_json['transId']
+
+        _LOGGER.debug("Settings %s, CSRF %s, Trans_id %s", settings_json, csrf, trans_id)
+
+        # Login Request
+        r = self.session.post(
+            "https://custlogin.gm.com/gmb2cprod.onmicrosoft.com/B2C_1A_SeamlessMigration_SignUpOrSignIn/SelfAsserted?tx={}&p=B2C_1A_SeamlessMigration_SignUpOrSignIn".format(trans_id),
+            {
+                "request_type": "RESPONSE",
+                "logonIdentifier": self.user,
+                "password": self.passwd,
+            },
+            headers={
+                'X-CSRF-TOKEN': csrf,
+            }
+        )
+
+        # Generate Auth Code and ID Token
+        r = self.session.get(
+            "https://custlogin.gm.com/gmb2cprod.onmicrosoft.com/B2C_1A_SeamlessMigration_SignUpOrSignIn/api/CombinedSigninAndSignup/confirmed?csrf_token={}&tx={}&p=B2C_1A_SeamlessMigration_SignUpOrSignIn".format(csrf, trans_id)
+        )
+        r.raise_for_status()
+        _LOGGER.debug("ID Token Content: %s", r.content)
+        m = id_token_re.search(r.text)
+        if not m:
+            raise ValueError("id_token not found in response")
+
+        id_token = m.group(1)
+
+        # Post ID Token
+        r = self.session.post(
+            get_url("oc_login", self.country),
+            {
+                "id_token": id_token
+            },
+        )
+        r.raise_for_status()
+        self.account = self.session.get(get_url("loginSuccessData", self.country), timeout=TIMEOUT)
+
 
     def get_cars(self):
         try:
