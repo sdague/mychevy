@@ -67,7 +67,7 @@ id_token_re = re.compile("name='id_token'.*value='(.*)'/>")
 
 USER_AGENT = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_4) "
               "AppleWebKit/537.36 (KHTML, like Gecko) "
-              "Chrome/42.0.2311.90 Safari/537.36")
+              "Chrome/75.0.3770.80 Safari/537.36")
 
 # b'{"messages":[],"serverErrorMsgs":[],"data":{"dataAsOfDate":1517317946000,"batteryLevel":82,"chargeState":"not_charging","plugState":"unplugged","rateType":"PEAK","voltage":0,"electricRange":155,"totalRange":182,"chargeMode":"DEPARTURE_BASED","electricMiles":1843,"gasMiles":0,"totalMiles":1843,"percentageOnElectric":1,"fuelEconomy":1000,"electricEconomy":44,"combinedEconomy":9,"fuelUsed":182,"electricityUsed":182,"estimatedGallonsFuelSaved":70.45,"estimatedCO2Avoided":1366.73,"estimatedFullChargeBy":"5:00
 # a.m."}}'
