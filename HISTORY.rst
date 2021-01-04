@@ -2,6 +2,11 @@
 History
 =======
 
+2.1.0 (2021-01-04)
+------------------
+* Add non EV attributes
+* Fix UA string
+
 2.0.1 (2020-04-21)
 ------------------
 * flake8 fixes
