@@ -198,7 +198,9 @@ class EVCar(object):
             self.plugged_in = d["plugState"] == "plugged"
             _LOGGER.debug("Data: {}".format(d))
             for a in CAR_ATTRS:
-                setattr(self, a, d[a])
+                # if the attr exists, set it
+                if a in d:
+                    setattr(self, a, d[a])
 
         except json.JSONDecodeError:
             _LOGGER.exception("Failure to decode json: %s" % data)
