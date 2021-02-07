@@ -258,7 +258,7 @@ class MyChevy(object):
         if not m:
             raise ValueError("SETTINGS not found in response")
 
-        settings_json = json.loads(m[1])
+        settings_json = json.loads(m.group(1))
         csrf = settings_json["csrf"]
         trans_id = settings_json["transId"]
 
